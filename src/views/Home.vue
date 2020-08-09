@@ -15,7 +15,7 @@
 
     <div class="row mt-4">
       <div class="col-sm-12 col-md-6 text-center">
-        <h5>Giá mua</h5>
+        <h5>Giá bán</h5>
         <h5 class="border border-success bg-success text-white rounded p-4">
           <span v-if="isLoading">?</span>
           <span v-else>{{ buy }}</span>
@@ -23,7 +23,7 @@
       </div>
 
       <div class="col-sm-12 col-md-6 text-center">
-        <h5>Giá bán</h5>
+        <h5>Giá mua</h5>
         <h5 class="border border-danger bg-danger text-white rounded p-4">
           <span v-if="isLoading">?</span>
           <span v-else>{{ sell }}</span>
@@ -33,25 +33,33 @@
 
     <div class="row mt-4">
       <div class="col-sm-12 col-md-12">
-        <div class="form-group">
-          <label>Máy tính</label>
+        <label>Máy tính</label>
+        <div class="input-group mb-3">
+          <div class="input-group-prepend">
+            <span class="input-group-text">Số lượng</span>
+          </div>
+
           <input v-model="amount" type="text" class="form-control" />
+
+          <div class="input-group-append">
+            <span class="input-group-text">{{ coin }}</span>
+          </div>
         </div>
       </div>
 
       <div class="col-sm-12 col-md-6 text-center">
         <div class="form-group">
-          <label>Mua với</label>
-          <h5 v-if="isLoading">?</h5>
-          <h5 v-else>{{ (amount * buy).toLocaleString() }} vnđ</h5>
+          <label>Bạn sẽ mua {{ Number(amount).toLocaleString() }} {{ coin }} với</label>
+          <h5 v-if="isLoading" class="text-success">?</h5>
+          <h5 v-else class="text-success">{{ (amount * buy).toLocaleString() }} vnđ</h5>
         </div>
       </div>
 
       <div class="col-sm-12 col-md-6 text-center">
         <div class="form-group">
-          <label>Bán với</label>
-          <h5 v-if="isLoading">?</h5>
-          <h5 v-else>{{ (amount * sell).toLocaleString() }} vnđ</h5>
+          <label>Bạn sẽ bán {{ Number(amount).toLocaleString() }} {{ coin }} với</label>
+          <h5 v-if="isLoading" class="text-danger">?</h5>
+          <h5 v-else class="text-danger">{{ (amount * sell).toLocaleString() }} vnđ</h5>
         </div>
       </div>
     </div>
