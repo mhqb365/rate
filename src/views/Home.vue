@@ -2,64 +2,84 @@
   <div class="container">
     <div class="row mt-4">
       <div class="col-sm-12 col-md-12">
-        <button
-          v-for="c in selectCoin"
-          :key="c"
-          type="button"
-          class="btn mr-2"
-          v-bind:class="[coin == c ? 'btn-primary' : 'btn-light']"
-          @click="fetch(c)"
-        >{{ c }}</button>
-      </div>
-    </div>
-
-    <div class="row mt-4">
-      <div class="col-sm-12 col-md-6 text-center">
-        <h5>Giá bán</h5>
-        <h5 class="border border-success bg-success text-white rounded p-4">
-          <span v-if="isLoading">?</span>
-          <span v-else>{{ buy }}</span>
-        </h5>
-      </div>
-
-      <div class="col-sm-12 col-md-6 text-center">
-        <h5>Giá mua</h5>
-        <h5 class="border border-danger bg-danger text-white rounded p-4">
-          <span v-if="isLoading">?</span>
-          <span v-else>{{ sell }}</span>
-        </h5>
+        <h3 class="display-4 text-primary">Giá mặt định: Bitmoon.net</h3>
       </div>
     </div>
 
     <div class="row mt-4">
       <div class="col-sm-12 col-md-12">
-        <label>Máy tính</label>
-        <div class="input-group mb-3">
-          <div class="input-group-prepend">
-            <span class="input-group-text">Số lượng</span>
-          </div>
+        <label>Coin</label>
 
-          <input v-model="amount" type="text" class="form-control" />
+        <div class="input-group">
+          <input type="text" class="form-control" v-model="coin" @change="fetch()" />
 
           <div class="input-group-append">
-            <span class="input-group-text">{{ coin }}</span>
+            <button type="button" class="btn btn-primary" @click="fetch()">Tìm</button>
           </div>
         </div>
       </div>
+    </div>
 
+    <div class="row mt-4">
       <div class="col-sm-12 col-md-6 text-center">
-        <div class="form-group">
-          <label>Bạn sẽ mua {{ Number(amount).toLocaleString() }} {{ coin }} với</label>
-          <h5 v-if="isLoading" class="text-success">?</h5>
-          <h5 v-else class="text-success">{{ (amount * buy).toLocaleString() }} vnđ</h5>
-        </div>
+        <h5>Giá bán ra</h5>
+
+        <h5 class="border border-success bg-success text-white rounded p-4">
+          <span v-if="isLoading">?</span>
+          <span v-else>{{ Number(sell).toLocaleString() }}</span>
+        </h5>
       </div>
 
       <div class="col-sm-12 col-md-6 text-center">
+        <h5>Giá mua vào</h5>
+        <h5 class="border border-danger bg-danger text-white rounded p-4">
+          <span v-if="isLoading">?</span>
+          <span v-else>{{ Number(buy).toLocaleString() }}</span>
+        </h5>
+      </div>
+    </div>
+
+    <div class="row mt-4">
+      <div class="col-sm-12 col-md-6">
         <div class="form-group">
-          <label>Bạn sẽ bán {{ Number(amount).toLocaleString() }} {{ coin }} với</label>
+          <label>Lệch giá bán ra</label>
+          <input type="text" class="form-control" v-model="changeSell" />
+        </div>
+      </div>
+
+      <div class="col-sm-12 col-md-6">
+        <div class="form-group">
+          <label>Lệch giá mua vào</label>
+          <input type="text" class="form-control" v-model="changeBuy" />
+        </div>
+      </div>
+
+      <div class="col-sm-12 col-md-12">
+        <label>Số lượng</label>
+        <div class="input-group">
+          <input type="text" class="form-control" v-model="amount" />
+        </div>
+      </div>
+
+      <div class="col-sm-12 col-md-6 text-center p-4">
+        <div class="form-group">
+          <label>Khách sẽ mua {{ Number(amount).toLocaleString() }} {{ coin }} với</label>
+          <h5 v-if="isLoading" class="text-success">?</h5>
+          <h5
+            v-else
+            class="text-success"
+          >{{ (amount * (sell + Number(changeSell))).toLocaleString() }}</h5>
+        </div>
+      </div>
+
+      <div class="col-sm-12 col-md-6 text-center p-4">
+        <div class="form-group">
+          <label>Khách sẽ bán {{ Number(amount).toLocaleString() }} {{ coin }} với</label>
           <h5 v-if="isLoading" class="text-danger">?</h5>
-          <h5 v-else class="text-danger">{{ (amount * sell).toLocaleString() }} vnđ</h5>
+          <h5
+            v-else
+            class="text-danger"
+          >{{ (amount * (buy + Number(changeBuy))).toLocaleString() }}</h5>
         </div>
       </div>
     </div>
@@ -74,18 +94,19 @@ export default {
     return {
       isLoading: false,
       coin: "doge",
-      selectCoin: ["doge", "trx"],
       buy: 0,
+      changeBuy: 0,
       sell: 0,
+      changeSell: 0,
       amount: 0,
     };
   },
   mounted() {
-    this.fetch(this.coin);
+    this.fetch();
+    setInterval(() => this.fetch(), 6e4);
   },
   methods: {
-    fetch: function (coin) {
-      this.coin = coin;
+    fetch: function () {
       this.isLoading = !this.isLoading;
       axios({
         url: "https://api-prod.bitmoon.net/graphql",
@@ -98,15 +119,15 @@ export default {
             page: 1,
             sort_name: "volume",
             sort_type: "desc",
-            search: coin,
+            search: this.coin,
           },
         },
       }).then((response) => {
         this.isLoading = !this.isLoading;
         // console.log(response.data.data.apiPricebookPaging.data[0]);
         let result = response.data.data.apiPricebookPaging.data[0];
-        this.buy = result.fast_ask_price;
-        this.sell = result.fast_bid_price;
+        this.buy = result.fast_bid_price;
+        this.sell = result.fast_ask_price;
       });
     },
   },
